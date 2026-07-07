@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Slow Loaf — Hero</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink: #0A0A09;
+    --bone: #EDEAE1;
+    --rust: #C1440E;
+    --steel: #514E47;
+    --margin: clamp(20px,4vw,48px);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body{ height:100%; }
+  body {
+    background: var(--ink);
+    color: var(--bone);
+    font-family:'Space Mono', monospace;
+    overflow-x:hidden;
+  }
+
+  .hero {
+    position:relative;
+    height:100vh;
+    min-height:680px;
+    width:100%;
+    overflow:hidden;
+    border-bottom: 2px solid var(--steel);
+  }
+
+  .topbar {
+    position:absolute;
+    top:0; left:0; right:0;
+    z-index:5;
+    padding: 20px var(--margin);
+    border-bottom:1px solid rgba(237,234,225,0.22);
+  }
+  .wordmark {
+    font-family:'Unbounded', sans-serif;
+    font-weight:800;
+    font-size:14px;
+    letter-spacing:0.02em;
+  }
+
+  /* photo panel is sized to the image's own aspect ratio (668:940),
+     so object-fit:cover has nothing left to crop away */
+  .photo-panel {
+    position:absolute;
+    right:0;
+    top:0;
+    height:100%;
+    aspect-ratio: 668 / 940;
+    max-width:58%;
+    border-left:2px solid var(--rust);
+    overflow:hidden;
+    z-index:2;
+  }
+  .photo-panel img {
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    object-position:center center;
+    filter: contrast(1.08) saturate(1.05);
+    transform:scale(1.06);
+    transition: transform 5s cubic-bezier(0.16,1,0.3,1);
+  }
+  .hero.loaded .photo-panel img { transform:scale(1); }
+
+  .grain {
+    position:absolute;
+    inset:0;
+    opacity:0.06;
+    pointer-events:none;
+    z-index:4;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .type-block {
+    position:absolute;
+    z-index:6;
+    left:var(--margin);
+    top:0;
+    bottom:0;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    max-width:44%;
+  }
+
+  .headline {
+    font-family:'Unbounded', sans-serif;
+    line-height:0.92;
+    text-transform:uppercase;
+  }
+  .h-row { overflow:hidden; }
+  .h-row span {
+    display:block;
+    transform:translateY(100%);
+    transition: transform 0.7s cubic-bezier(0.65,0,0.1,1);
+  }
+  .hero.loaded .h-row:nth-child(1) span { transition-delay:0.15s; transform:translateY(0); }
+  .hero.loaded .h-row:nth-child(2) span { transition-delay:0.28s; transform:translateY(0); }
+  .hero.loaded .h-row:nth-child(3) span { transition-delay:0.41s; transform:translateY(0); }
+
+  .h1 { font-weight:400; font-size:clamp(30px,4.4vw,56px); color:var(--bone); letter-spacing:-0.01em; }
+  .h2 { font-weight:800; font-size:clamp(30px,4.4vw,56px); color:var(--bone); letter-spacing:-0.01em; margin-top:-0.06em; }
+  .h3 {
+    font-weight:900;
+    font-size:clamp(36px,5.4vw,68px);
+    color:transparent;
+    -webkit-text-stroke: 2px var(--rust);
+    margin-top:-0.06em;
+  }
+
+  .stamp {
+    margin-top:24px;
+    font-size:10.5px;
+    letter-spacing:0.1em;
+    color:var(--steel);
+    opacity:0;
+    transition: opacity 0.6s ease 0.75s;
+  }
+  .hero.loaded .stamp { opacity:1; }
+  .stamp b { color:var(--bone); font-weight:700; }
+
+  .bottombar {
+    position:absolute;
+    left:0; right:0; bottom:0;
+    z-index:6;
+    display:flex;
+    align-items:center;
+    padding: 16px var(--margin);
+    font-size:9.5px;
+    letter-spacing:0.1em;
+    border-top:1px solid rgba(237,234,225,0.18);
+  }
+  .bottombar .dot {
+    display:inline-block;
+    width:6px; height:6px;
+    background:var(--rust);
+    margin-right:8px;
+    animation: blink 1.6s steps(1) infinite;
+  }
+  @keyframes blink { 50% { opacity:0.15; } }
+
+  /* on narrow viewports, side-by-side stops making sense for a
+     portrait photo — stack instead rather than force the split */
+  @media (max-width:900px){
+    .hero { height:auto; min-height:0; display:flex; flex-direction:column; }
+    .topbar { position:relative; }
+    .photo-panel {
+      position:relative;
+      max-width:none;
+      width:100%;
+      height:auto;
+      aspect-ratio: 668/940;
+      border-left:none;
+      border-bottom:2px solid var(--rust);
+      order:2;
+    }
+    .type-block {
+      position:relative;
+      max-width:none;
+      left:auto; top:auto; bottom:auto;
+      padding: 36px var(--margin);
+      order:1;
+    }
+    .bottombar { position:relative; order:3; }
+  }
+</style>
+</head>
+<body>
+
+<section class="hero" id="hero">
+
+  <div class="topbar">
+    <div class="wordmark">SLOW&nbsp;LOAF</div>
+  </div>
+
+  <div class="photo-panel">
+    <img src="flour-burst.jpg" alt="Flour thrown mid-air over proofed dough, caught in hard light">
+    <div class="grain"></div>
+  </div>
+
+  <div class="type-block">
+    <h1 class="headline">
+      <span class="h-row"><span class="h1">DOUGH</span></span>
+      <span class="h-row"><span class="h2">DOESN'T</span></span>
+      <span class="h-row"><span class="h3">WAIT.</span></span>
+    </h1>
+    <p class="stamp">SLOW LOAF — <b>BATCH NO. 001</b>, BAKED DAILY FROM 4AM</p>
+  </div>
+
+  <div class="bottombar">
+    <div><span class="dot"></span>LIVE — OVEN HOT</div>
+  </div>
+
+</section>
+
+<script>
+  window.addEventListener('load', () => {
+    requestAnimationFrame(() => {
+      document.getElementById('hero').classList.add('loaded');
+    });
+  });
+
+  const img = document.querySelector('.photo-panel img');
+  window.addEventListener('scroll', () => {
+    const y = window.scrollY;
+    img.style.transform = `scale(1) translateY(${y * 0.15}px)`;
+  }, { passive:true });
+</script>
+
+</body>
+</html>
